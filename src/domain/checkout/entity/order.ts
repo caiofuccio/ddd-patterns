@@ -1,4 +1,3 @@
-import Product from '../../product/entity/product';
 import OrderItem from './order_item';
 export default class Order {
     private _id: string;

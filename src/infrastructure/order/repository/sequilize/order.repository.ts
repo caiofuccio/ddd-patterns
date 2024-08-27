@@ -45,4 +45,11 @@ export default class OrderRepository {
             { where: { id: entity.id } },
         );
     }
+
+    async find(id: string): Promise<OrderModel> {
+        return OrderModel.findOne({
+            where: { id },
+            include: ['items'],
+        });
+    }
 }
