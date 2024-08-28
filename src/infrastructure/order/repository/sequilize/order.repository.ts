@@ -46,10 +46,49 @@ export default class OrderRepository {
         );
     }
 
-    async find(id: string): Promise<OrderModel> {
-        return OrderModel.findOne({
+    async find(id: string): Promise<Order> {
+        const orderModel = await OrderModel.findOne({
             where: { id },
             include: ['items'],
         });
+
+        return new Order(
+            orderModel.id,
+            orderModel.customer_id,
+            orderModel.items.map(
+                (orderItemModel) =>
+                    new OrderItem(
+                        orderItemModel.id,
+                        orderItemModel.name,
+                        orderItemModel.price,
+                        orderItemModel.product_id,
+                        orderItemModel.quantity,
+                    ),
+            ),
+        );
+    }
+
+    async findAll(): Promise<Order[]> {
+        const orderModels = await OrderModel.findAll({
+            include: ['items'],
+        });
+
+        return orderModels.map(
+            (orderModel) =>
+                new Order(
+                    orderModel.id,
+                    orderModel.customer_id,
+                    orderModel.items.map(
+                        (orderModelItem) =>
+                            new OrderItem(
+                                orderModelItem.id,
+                                orderModelItem.name,
+                                orderModelItem.price,
+                                orderModelItem.product_id,
+                                orderModelItem.quantity,
+                            ),
+                    ),
+                ),
+        );
     }
 }

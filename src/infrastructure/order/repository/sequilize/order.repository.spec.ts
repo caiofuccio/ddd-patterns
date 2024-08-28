@@ -23,12 +23,13 @@ describe('Order repository test', () => {
             sync: { force: true },
         });
 
-        await sequelize.addModels([
+        sequelize.addModels([
             CustomerModel,
             OrderModel,
             OrderItemModel,
             ProductModel,
         ]);
+
         await sequelize.sync();
     });
 
@@ -162,20 +163,55 @@ describe('Order repository test', () => {
 
         const orderModel = await orderRepository.find(order.id);
 
-        expect(orderModel.toJSON()).toStrictEqual({
-            id: order.id,
-            customer_id: order.customerId,
-            total: order.total(),
-            items: [
-                {
-                    id: orderItem.id,
-                    name: orderItem.name,
-                    price: orderItem.price,
-                    quantity: orderItem.quantity,
-                    order_id: order.id,
-                    product_id: orderItem.productId,
-                },
-            ],
-        });
+        expect(orderModel).toStrictEqual(order);
+    });
+
+    it('should find all existing orders', async () => {
+        const customerRepository = new CustomerRepository();
+        const customerOne = new Customer('123', 'Customer 1');
+        const addressOne = new Address('Street 1', 1, 'Zipcode 1', 'City 1');
+        customerOne.changeAddress(addressOne);
+        await customerRepository.create(customerOne);
+
+        const productRepository = new ProductRepository();
+        const productOne = new Product('123', 'Product 1', 10);
+        await productRepository.create(productOne);
+
+        const orderItemOne = new OrderItem(
+            '1',
+            productOne.name,
+            productOne.price,
+            productOne.id,
+            2,
+        );
+
+        const orderOne = new Order('123', '123', [orderItemOne]);
+        const orderRepository = new OrderRepository();
+        await orderRepository.create(orderOne);
+
+        const customerTwo = new Customer('456', 'Customer 2');
+        const addressTwo = new Address('Street 2', 2, 'Zipcode 2', 'City 2');
+        customerTwo.changeAddress(addressTwo);
+        await customerRepository.create(customerTwo);
+
+        const productTwo = new Product('456', 'Product 2', 20);
+        await productRepository.create(productTwo);
+
+        const orderItemTwo = new OrderItem(
+            '2',
+            productTwo.name,
+            productTwo.price,
+            productTwo.id,
+            1,
+        );
+
+        const orderTwo = new Order('456', '456', [orderItemTwo]);
+        await orderRepository.create(orderTwo);
+
+        const orders = [orderOne, orderTwo];
+
+        const orderModels = await orderRepository.findAll();
+
+        expect(orderModels).toStrictEqual(orders);
     });
 });
